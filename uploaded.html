@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXELATOR | OUTPUT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000;
+            --fg: #fff;
+            --a2: #333;
+            --font: "Geist Mono", monospace;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: var(--font-pixel);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .view-container {
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border: 1px solid var(--a2);
+            image-rendering: pixelated;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .nav-link {
+            margin-top: 30px;
+            color: #888;
+            text-decoration: none;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: 0.3s;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 4px;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            border-bottom: 1px solid #fff;
+        }
+
+        .download-hint {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #50a3fc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="view-container">
+        <div class="status-bar">
+            <span>RENDER_COMPLETE</span>
+            <span>{{ filename }}</span>
+        </div>
+        
+        <img src="{{ url_for('static', filename=filename) }}" class="result-image" alt="Pixelated Output">
+
+        <a href="/" class="nav-link">← NEW_EXECUTION</a>
+        
+        <div class="download-hint">
+        <a href="{{ url_for('static', filename=filename) }}" download="my-pixel-work.png">
+    Download Pixel Art
+</a> </div>
+    </div>
+
+</body>
+</html>

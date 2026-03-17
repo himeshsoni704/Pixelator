@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXELATOR</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-mono/style.css">
+    <style>
+        :root {
+            --f: "Geist Mono", monospace;
+            --fg: #fff;
+            --bg: #000;
+            --a1: #111;
+            --a2: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+        @font-face {
+  font-family: "GeistPixel";
+  src: url("/static/fonts/GeistPixel-Regular.woff2") format("woff2");
+}
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: var(--f);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            transition: transform .8s cubic-bezier(.16, 1, .3, 1), filter .8s ease, opacity .8s ease;
+        }@font-face {
+  font-family: "Geist Pixel";
+  src: url("/static/fonts/GeistPixel-Regular.woff2") format("woff2");
+}
+
+:root {
+  /* This mimics the Next.js behavior */
+  --font-geist-pixel: "Geist Pixel", monospace;
+}
+
+
+
+        .title {
+            font-size: clamp(3rem, 15vw, 10rem);
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+            font-family: var(--font-geist-pixel);
+  /* Ensure it stays sharp */
+  image-rendering: pixelated;
+              
+        }
+
+        .hero-character {
+            width: 80px;
+            image-rendering: pixelated;
+            margin-top: 20px;
+            animation: f 3s ease-in-out infinite;
+        }
+
+        @keyframes f {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* --- Workspace Container --- */
+        .workspace-container {
+            position: relative;
+            z-index: 2;
+            margin-top: 100vh;
+            min-height: 100vh;
+            background: rgba(0, 0, 0, .5);
+            backdrop-filter: blur(25px) saturate(180%);
+            border-top: 1px solid var(--a2);
+            padding: 80px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all .8s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .workspace-container.visible .content-wrapper {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-image {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--a2);
+            margin-bottom: 40px;
+            image-rendering: pixelated;
+        }
+
+        /* --- Dropzone Styles --- */
+        .drop-zone {
+            width: 100%;
+            height: 200px;
+            border: 1px dashed var(--a2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: .3s;
+            color: #888;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #fff;
+            background: var(--a1);
+            color: #fff;
+        }
+
+        .drop-zone span {
+            pointer-events: none;
+            font-family: var(--f);
+            font-size: 12px;
+        }
+
+        #file-name-display {
+            margin-top: 10px;
+            color: #fff;
+            font-weight: bold;
+            display: none;
+            word-break: break-all;
+        }
+
+        /* --- Control Panel --- */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            background: var(--a1);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--a2);
+        }
+
+        .setting label {
+            display: block;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        select, 
+        input[type=range] {
+            width: 100%;
+            background: var(--bg);
+            color: #fff;
+            border: 1px solid var(--a2);
+            padding: 10px;
+            outline: none;
+            font-family: var(--f);
+        }
+
+        .btn-execute {
+            grid-column: 1 / -1;
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 18px;
+            font-family: var(--f);
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+            transition: .2s;
+        }
+
+        .btn-execute:hover {
+            background: #ccc;
+        }
+
+        /* --- Palette Area --- */
+        #custom-palette-area {
+            grid-column: 1 / -1;
+            border-top: 1px solid var(--a2);
+            margin-top: 10px;
+            padding-top: 20px;
+            display: none;
+        }
+
+        #custom-palette-area.open {
+            display: block;
+        }
+
+        #pixelCanvas{
+position:fixed;
+top:0;
+left:0;
+z-index:-1;
+pointer-events:none;
+}
+
+.pixel{
+  background:black;
+  opacity:0;
+  transform:scale(0);
+  transition:all 0.3s ease;
+}
+
+.pixel.show{
+  opacity:1;
+  transform:scale(1);
+}
+
+        .swatch-tray {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 2px;
+            margin-top: 10px;
+            width: 100%;
+            min-width: 5px;
+            height: 50%;
+        }
+
+        .swatch-picker input[type=color] {
+            width: 100%;
+            height: 35px;
+            border: 1px solid var(--a2);
+            background: none;
+            cursor: pointer;
+            min-width: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero" id="hero">
+        <h1 class="title">PIXELATOR</h1>
+
+        <!-- <img src="https://files.catbox.moe/p9p4j6.png" class="hero-character" alt="Pixel Character"> -->
+    </div>
+    <canvas id="pixelCanvas"></canvas>
+
+    <div class="workspace-container" id="workspace">
+        <div class="content-wrapper">
+            {% if filename %}
+                <h2 style="font-size:12px;color:#888">LAST_PROCESS_RESULT</h2>
+                <img src="{{ url_for('static', filename=filename) }}" class="result-image">
+            {% endif %}
+
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <label class="drop-zone" id="drop-zone">
+                    <span id="drop-zone-prompt">DRAG_DROP_OR_CLICK_TO_UPLOAD</span>
+                    <div id="file-name-display"></div>
+                    <input type="file" name="file" id="file-input" accept="image/*" style="display:none" required>
+                </label>
+
+                <div class="control-panel">
+                    <div class="setting">
+                        <label>Sampling_Mode</label>
+                        <select name="mode">
+                            <option value="Grid">GRID_SAMPLING</option>
+                            <option value="Segment">ORGANIC_SLIC</option>
+                        </select>
+                    </div>
+
+                    <div class="setting">
+                        <label>Resolution_Scale</label>
+                        <input type="range" name="pixel_size" min="1" max="25" value="10">
+                    </div>
+
+                    <div class="setting" style="grid-column:1/-1">
+                        <label>Palette_Source</label>
+                        <div style="display:flex;gap:20px;margin-top:5px">
+                            <label style="font-size:10px;color:#fff;cursor:pointer">
+                                <input type="radio" name="palette_type" value="auto" checked onchange="toggleCustomArea()"> AUTO_EXTRACT
+                            </label>
+                            <label style="font-size:10px;color:#fff;cursor:pointer">
+                                <input type="radio" name="palette_type" value="custom" onchange="toggleCustomArea()"> CUSTOM_PALETTE
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="custom-palette-area">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px">
+                            <div class="setting">
+                                <div style="display:flex;flex-grow:0.5;min-width:3px;justify-content:space-between;align-items:right;margin-bottom:10px">
+                                    <label style="margin:0">Quick_Presets-</label>
+                                    <div id="preset-preview-strip" style="display:flex;gap:2px;width:90%;height:12px"></div>
+                                </div>
+                                <select id="palette-presets" onchange="applyPreset(this.value)">
+    <option value="">-- CHOOSE_PRESET --</option>
+
+    <option value="cyber" data-colors="#ff0055,#00ff9f,#00b8ff,#f2ea02,#ff00ff,#7000ff,#0012ff,#ffffff,#ff6a00,#00ffd5,#d400ff,#ff0099,#00aaff,#ffaa00,#ff33cc,#33ff00">CYBERPUNK</option>
+    <option value="gb" data-colors="#0f380f,#306230,#8bac0f,#9bbc0f,#0f380f,#306230,#8bac0f,#9bbc0f,#0f380f,#306230,#8bac0f,#9bbc0f,#0f380f,#306230,#8bac0f,#9bbc0f">GAMEBOY</option>
+    <option value="mono" data-colors="#000000,#111111,#222222,#333333,#444444,#555555,#666666,#777777,#888888,#999999,#aaaaaa,#bbbbbb,#cccccc,#dddddd,#eeeeee,#ffffff">MONO</option>
+    <option value="neon" data-colors="#ff00ff,#00ffff,#ff6600,#00ff66,#ff0066,#66ff00,#6600ff,#00ffcc,#cc00ff,#ffcc00,#00ccff,#ccff00,#ff3300,#33ff00,#0033ff,#ff0033">NEON</option>
+    <option value="pastel" data-colors="#ffd1dc,#ffe4e1,#f0fff0,#e6e6fa,#fff0f5,#fafad2,#f5f5dc,#e0ffff,#d8bfd8,#ffe4b5,#ffe4c4,#f0e68c,#f5deb3,#faf0e6,#e6e6fa,#dcdcdc">PASTEL</option>
+    <option value="earth" data-colors="#7b3f00,#a0522d,#deb887,#cd853f,#8b4513,#d2b48c,#bc8f8f,#f5f5dc,#a0522d,#8b4513,#654321,#c2b280,#996633,#b5651d,#654321,#704214">EARTH</option>
+    <option value="frutiger_aero" data-colors="#00aaff,#66ccff,#99ddff,#cceeff,#e6f7ff,#99ffff,#66ffff,#00ffff,#33cccc,#009999,#336666,#003333,#ffffff,#e6e6e6,#cccccc,#999999">FRUTIGER AERO</option>
+</select>
+                            </div>
+                            <div class="setting">
+                                <label>Manual_Adjustment (16 Colors)</label>
+                                <div class="swatch-tray">
+                                    {% for i in range(16) %}
+                                        <div class="swatch-picker">
+                                            <input type="color" name="custom_colors" id="c{{i}}" value="#000000">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-execute">EXECUTE_UPLOAD</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+    <script>
+        /* --- Parallax & Scroll Effects --- */
+        window.addEventListener("scroll", () => {
+            const s = window.scrollY / window.innerHeight;
+            const h = document.getElementById("hero");
+            const w = document.getElementById("workspace");
+            
+            if (s <= 1) {
+                h.style.transform = `scale(${1 - s * .15}) translateY(${-s * 50}px)`;
+                h.style.filter = `blur(${s * 25}px)`;
+                h.style.opacity = 1 - (s * 1.2);
+            }
+            
+            if (s > .2) {
+                w.classList.add("visible");
+            } else {
+                w.classList.remove("visible");
+            }
+        });
+
+        /* --- Drag & Drop Logic --- */
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const promptText = document.getElementById('drop-zone-prompt');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+        });
+
+        dropZone.addEventListener('drop', e => {
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                updateFileName(files[0].name);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) updateFileName(fileInput.files[0].name);
+        });
+
+        function updateFileName(name) {
+            promptText.style.display = 'none';
+            fileNameDisplay.innerText = `SELECTED: ${name}`;
+            fileNameDisplay.style.display = 'block';
+        }
+
+        /* --- Palette Controls --- */
+        function toggleCustomArea() {
+            const isCustom = document.querySelector('input[value="custom"]').checked;
+            const area = document.getElementById("custom-palette-area");
+            area.classList.toggle("open", isCustom);
+            area.querySelectorAll("input, select").forEach(el => el.disabled = !isCustom);
+        }
+
+        function applyPreset(val) {
+            if (!val) return;
+            document.querySelector('input[value="custom"]').checked = true;
+            toggleCustomArea();
+
+            const select = document.getElementById("palette-presets");
+            const colors = select.options[select.selectedIndex].getAttribute("data-colors").split(",");
+            const previewStrip = document.getElementById("preset-preview-strip");
+
+            previewStrip.innerHTML = "";
+            
+            colors.forEach((c, i) => {
+                const input = document.getElementById(`c${i}`);
+                if (input) input.value = c;
+            });
+
+            colors.forEach(c => {
+    const swatch = document.createElement("div");
+    swatch.style.cssText = `
+        flex: 1;
+        height: 100%;
+        background: ${c};
+        border: 1px solid #333;
+        border-radius: 2px;
+    `;
+    previewStrip.appendChild(swatch);
+});
+        }
+
+        document.addEventListener("DOMContentLoaded", toggleCustomArea);
+
+        {% if filename %}
+        window.onload = () => {
+            setTimeout(() => {
+                window.scrollTo({
+                    top: window.innerHeight,
+                    behavior: "smooth"
+                });
+            }, 500);
+        };
+        {% endif %}
+
+const canvas = document.getElementById("pixelCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+
+/* pixel particle */
+
+class Pixel{
+
+    constructor(x,y,tx,ty){
+        this.x = x
+        this.y = y
+        this.tx = tx
+        this.ty = ty
+    }
+
+    update(){
+        this.x += (this.tx - this.x) * 0.08
+        this.y += (this.ty - this.y) * 0.08
+    }
+
+    draw(){
+        ctx.fillStyle = "white"
+        ctx.fillRect(this.x,this.y,4,4)
+    }
+
+}
+
+
+const pixels=[]
+
+
+/* pattern positioning */
+
+const centerX = canvas.width/2
+const baseY = canvas.height/2 + 120
+
+const blockWidth = 40
+const blockHeight = 25
+
+const gapX = 80
+const gapY = 35
+
+const pixelStep = 4
+
+
+/* block positions */
+
+const blocks=[
+
+{ x:centerX-gapX , y:baseY },
+{ x:centerX , y:baseY },
+{ x:centerX+gapX , y:baseY },
+
+{ x:centerX-gapX/2 , y:baseY+gapY },
+{ x:centerX+gapX/2 , y:baseY+gapY }
+
+]
+
+
+/* fill blocks with dense pixels */
+
+blocks.forEach(b=>{
+
+    for(let x=0;x<blockWidth;x+=pixelStep){
+        for(let y=0;y<blockHeight;y+=pixelStep){
+
+            const tx=b.x+x
+            const ty=b.y+y
+
+            const sx=Math.random()*canvas.width
+            const sy=Math.random()*canvas.height
+
+            pixels.push(new Pixel(sx,sy,tx,ty))
+
+        }
+    }
+
+})
+
+
+function animate(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+
+    pixels.forEach(p=>{
+        p.update()
+        p.draw()
+    })
+
+    requestAnimationFrame(animate)
+
+}
+
+animate()
+
+</script>
+</body>
+</html>
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixelator | Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+    background-color: #06080a; /* Deep charcoal black */
+    color: #00ffc8;
+    font-family: 'Press Start 2P', cursive;
+    margin: 0;
+    overflow: hidden;
+
+    /* REVISED SCANLINES: Using dark shadows instead of light tints */
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.5) 50%), 
+        linear-gradient(90deg, rgba(0, 255, 200, 0.02), rgba(0, 0, 0, 0), rgba(0, 255, 200, 0.02));
+    background-size: 100% 3px, 3px 100%;
+    
+    /* This ensures the scanlines don't "stack" and brighten the screen */
+    background-blend-mode: multiply;
+}
+
+#terminal-boot {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    font-size: 11px;
+    line-height: 1.8;
+    color: #00ffc8;
+    /* Reduced glow intensity to prevent "bleeding" into the dark */
+    text-shadow: 0 0 5px rgba(0, 255, 200, 0.4);
+    z-index: 10;
+}
+
+.log-entry { 
+    margin-bottom: 8px; 
+    /* Mimics the slight dimming of older terminal text */
+    filter: brightness(0.9);
+}
+
+.success { color: #00ffc8; filter: brightness(1.2); }
+.warning { color: #ffcc00; } /* Amber warning for the partition alert */
+
+.glass-card {
+    width: 380px;
+    padding: 40px;
+    background: rgba(0, 20, 20, 0.7); /* Deep teal glass */
+    border: 3px solid #00ffc8; /* Teal border instead of white */
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); /* Teal glow */
+    backdrop-filter: blur(12px);
+    image-rendering: pixelated;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-style: preserve-3d;
+    transition: transform 0.1s steps(10);
+}
+
+h2 {
+    font-size: 12px;
+    color: #00ffc8; /* Fixes the 'Select Source' color */
+    text-shadow: 0 0 5px rgba(0, 255, 200, 0.8);
+    margin-bottom: 30px;
+}
+
+button {
+    font-family: 'Press Start 2P';
+    background-color: #00ffc8; /* Teal button */
+    color: #010808; /* Dark text on button */
+    border: none;
+    padding: 15px 20px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0px #008877; /* Darker teal shadow */
+    font-size: 10px;
+}
+        
+        /* Top-left Terminal Text */
+        
+
+        .log-entry { margin-bottom: 8px; }
+        .success { color: #55ff55; }
+        .warning { color: #ffff55; }
+
+        .scene {
+            perspective: 1000px;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0; /* Hidden until boot finishes */
+            transition: opacity 1s ease;
+        }
+
+        .terminal-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #00ffc8;
+            text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+        }
+
+        
+
+        input[type="file"] {
+            margin: 20px 0;
+            font-family: 'Press Start 2P';
+            font-size: 8px;
+            color: #ffffff;
+            background: #002b2b;
+            padding: 10px;
+            border: 2px dashed #ffffff;
+            width: 80%;
+        }
+
+        
+
+        button:hover { background-color: #00ffc8; }
+
+        #trailCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="terminal-boot"></div>
+
+    <div class="scene" id="main-ui">
+        <div class="terminal-header">Pixelator Console</div>
+        <div class="glass-card" id="card">
+            <div class="container">
+                <h2 style="font-size: 12px;">Select Source</h2>
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="file" accept="image/*" required>
+                    <br>
+                    <button type="submit">EXECUTE_UPLOAD</button>
+
+                
+            <br>
+                
+                    <input type= "radio" id="Grid" name="mode" value="Grid" checked>
+                    <label for="pixelate">Grid</label><br>
+                    <input type="radio" id="Segment" name="mode" value="Segment">
+                    <label for="swatch">Segmentation</label><br>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+    <canvas id="trailCanvas"></canvas>
+
+<script>
+    const bootContainer = document.getElementById('terminal-boot');
+    const mainUI = document.getElementById('main-ui');
+    const canvas = document.getElementById('trailCanvas');
+    const ctx = canvas.getContext('2d');
+    const card = document.getElementById('card');
+
+    // 1. Terminal Boot Logic
+    const logs = [
+        "himesh@fedora:~$ ./pixelator_start.sh",
+        "[INFO] Mounting /dev/nvme0n1p3...",
+        "[INFO] Python 3.14 Venv: ACTIVE",
+        "[INFO] ROCm 6.2 Acceleration: ENABLED",
+        "[WARN] Low Disk Space (26GB Partition)",
+        "[INFO] Initializing Pixelator UI...",
+        "------------------------------------",
+        "STATUS: READY"
+    ];
+
+    let line = 0;
+    function typeLogs() {
+        if (line < logs.length) {
+            let p = document.createElement('div');
+            p.className = 'log-entry';
+            if (logs[line].includes('READY')) p.style.color = "#00ffc8";
+            p.textContent = logs[line];
+            bootContainer.appendChild(p);
+            line++;
+            setTimeout(typeLogs, 400); 
+        } else {
+            setTimeout(() => {
+                bootContainer.style.opacity = "0.3"; // Dim the logs
+                mainUI.style.opacity = "1"; // Show the UI
+            }, 800);
+        }
+    }
+
+    // 2. Mouse Trail Logic
+    let particles = [];
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    class Particle {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 15 + 5; 
+            this.life = 0.6;
+            this.decay = 0.02;
+        }
+        draw() {
+            ctx.fillStyle = `rgba(0, 255, 200, ${this.life})`;
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+        update() { this.life -= this.decay; }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            p.update();
+            p.draw();
+            if (p.life <= 0) particles.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+    }
+
+    // 3. Mouse Event Listeners
+    window.addEventListener('mousemove', (e) => {
+        // Only trigger effects if UI is visible
+        if (mainUI.style.opacity === "1") {
+            for (let i = 0; i < 2; i++) particles.push(new Particle(e.pageX, e.pageY));
+            
+            let xAxis = (window.innerWidth / 2 - e.pageX) / 20;
+            let yAxis = (window.innerHeight / 2 - e.pageY) / 20;
+            card.style.transform = `rotateY(${-Math.floor(xAxis)}deg) rotateX(${Math.floor(yAxis)}deg)`;
+        }
+    });
+
+    // Run
+    typeLogs();
+    animate();
+</script>
+</body>
+</html> --> -->
