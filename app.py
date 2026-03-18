@@ -162,4 +162,4 @@ def upload():
     return render_template('uploaded.html', filename=output_filename, swatches=swatches)
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5050, debug=True)
+    app.run()
