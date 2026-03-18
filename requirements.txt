@@ -1,8 +1,6 @@
-flask
- pillow 
+pillow 
 numpy 
 scikit-learn
-#fastapi
 uvicorn
 scikit-image
 flask
