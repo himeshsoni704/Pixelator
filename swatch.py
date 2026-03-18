@@ -2,7 +2,6 @@ from email.mime import image
 from skimage.segmentation import slic
 import os
 import PIL.Image as Image
-from fastapi import requests
 import numpy as np
 from sklearn.cluster import KMeans
 
