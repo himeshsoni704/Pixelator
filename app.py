@@ -100,7 +100,15 @@ import numpy as np
 from pixelator import Pixelator
 from swatch import swatch
 
-app = Flask(__name__, template_folder=r'/home/himesh/CODE_FILES/pixelator', static_folder=r'/home/himesh/CODE_FILES/pixelator')
+# Get the directory where app.py is located
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, 
+            template_folder=base_dir, 
+            static_folder=base_dir)
+
+
+#app = Flask(__name__, template_folder=r'/home/himesh/CODE_FILES/pixelator', static_folder=r'/home/himesh/CODE_FILES/pixelator')
 
 # Helper function (outside the route)
 def hex_to_rgb(hex_color):
